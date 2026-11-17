@@ -1,39 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Одно поручение — два результата</title>
-<style>
-.fd-task-demo{--blue:#17549a;--dark:#163958;--pale:#eef6ff;--line:#d9e8f5;--text:#23364a;font-family:Arial,Helvetica,sans-serif;color:var(--text);max-width:850px;margin:20px auto;padding:22px;border-radius:18px;background:#f3f8ff;box-sizing:border-box}
-.fd-task-demo *{box-sizing:border-box}.fd-task-demo h3{margin:0 0 9px;color:var(--dark);font-size:23px;line-height:1.25}.fd-task-demo .intro{margin:0 0 18px;line-height:1.5;font-size:15px}.fd-task-demo .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.fd-task-demo button{cursor:pointer;border:1px solid #bdd3e7;color:var(--blue);background:white;padding:11px 15px;border-radius:10px;font:700 14px Arial,Helvetica,sans-serif;transition:background .2s,color .2s,transform .2s}.fd-task-demo button:focus-visible{outline:3px solid #ffaf48;outline-offset:3px}.fd-task-demo button.active{background:var(--blue);color:white;border-color:var(--blue)}.fd-task-demo button:hover{transform:translateY(-1px)}.fd-task-demo .panel{background:white;border:1px solid var(--line);border-radius:14px;padding:20px;animation:fdReveal .22s ease-out}.fd-task-demo .eyebrow{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--blue);margin-bottom:9px}.fd-task-demo blockquote{margin:0 0 19px;font-size:19px;line-height:1.55;font-weight:700;color:var(--dark);border-left:4px solid #e29b47;padding-left:15px}.fd-task-demo .good blockquote{border-color:#2f8b79}.fd-task-demo .result{border-radius:11px;background:#f0f5fa;padding:15px 17px;line-height:1.55}.fd-task-demo .result strong{display:block;color:var(--dark);margin-bottom:6px}.fd-task-demo .takeaway{margin-top:15px;border-top:1px solid var(--line);padding-top:12px;font-size:14px;line-height:1.5}.fd-task-demo .bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:15px}.fd-task-demo .step{font-size:12px;color:#61768b}.fd-task-demo .next{background:var(--blue);color:white}.fd-task-demo .next:hover{background:#123e75}@keyframes fdReveal{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@media(max-width:520px){.fd-task-demo{padding:15px;border-radius:12px}.fd-task-demo h3{font-size:20px}.fd-task-demo blockquote{font-size:17px}.fd-task-demo .controls button{flex:1;padding:10px}.fd-task-demo .panel{padding:16px}.fd-task-demo .bottom{flex-wrap:wrap}.fd-task-demo .next{width:100%}}@media(prefers-reduced-motion:reduce){.fd-task-demo .panel{animation:none}.fd-task-demo button{transition:none}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Соберите промпт — экспресс-проверка бюджета</title>
+  <style>
+    :root { font-family: Arial, Helvetica, sans-serif; color: #242836; background: #fff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; }
+    .trainer { max-width: 757px; margin: 0 auto; padding: 22px; border: 1px solid #e5e7ed; border-radius: 14px; background: #fff; }
+    .head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 18px; }
+    .eyebrow { color: #777c8b; font-size: 12px; text-transform: uppercase; letter-spacing: .075em; font-weight: 700; margin-bottom: 6px; }
+    h2 { font-size: 25px; line-height: 1.2; margin: 0; }
+    .time { border: 1px solid #e5e7ed; border-radius: 20px; padding: 7px 10px; white-space: nowrap; color: #636a77; font-size: 13px; font-weight: 700; }
+    .scenario { background: #f6f7f9; padding: 15px 17px; border-radius: 10px; line-height: 1.5; font-size: 15px; }
+    .scenario strong { display: block; margin-bottom: 4px; }
+    .task { margin: 20px 0 8px; font-size: 17px; font-weight: 700; }
+    .hint { color: #707583; font-size: 13px; margin: 0 0 12px; }
+    .options { display: grid; gap: 9px; }
+    .option { display: flex; align-items: flex-start; gap: 11px; width: 100%; text-align: left; cursor: pointer; background: #fff; border: 1px solid #dfe2ea; padding: 13px 14px; border-radius: 10px; line-height: 1.42; font: inherit; font-size: 14px; transition: border-color .12s, background .12s; }
+    .option:hover:not(:disabled) { border-color: #747b8c; background: #fbfbfd; }
+    .option:focus-visible { outline: 3px solid #a9b8fa; outline-offset: 2px; }
+    .option[aria-pressed="true"] { border-color: #4c5dc5; background: #f1f3ff; }
+    .option:disabled { cursor: default; opacity: 1; }
+    .box { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 1px; border: 1.5px solid #9aa1ae; border-radius: 4px; display: grid; place-items: center; font-weight: 700; font-size: 14px; line-height: 1; }
+    .option[aria-pressed="true"] .box { background: #4c5dc5; border-color: #4c5dc5; color: #fff; }
+    .option.correct { border-color: #39856c; background: #f3faf7; }
+    .option.wrong { border-color: #c66d6d; background: #fff5f5; }
+    .mark { margin-left: auto; font-weight: 700; flex: 0 0 auto; }
+    .correct .mark { color: #277558; }
+    .wrong .mark { color: #ae4848; }
+    .footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .count { color: #707583; font-size: 13px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    button.action { border-radius: 8px; padding: 10px 15px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .reset { color: #3e4554; border: 1px solid #dbe0e9; background: #fff; }
+    .check { color: #fff; border: 1px solid #3e4da9; background: #4658bc; }
+    .check:disabled { background: #b5bbd4; border-color: #b5bbd4; cursor: not-allowed; }
+    .result { display: none; margin-top: 20px; background: #f6f7f9; border-radius: 10px; padding: 17px; line-height: 1.55; font-size: 14px; }
+    .result.show { display: block; }
+    .result h3 { margin: 0 0 9px; font-size: 17px; }
+    .result p { margin: 0 0 13px; }
+    .result .prompt-title { font-weight: 700; margin-bottom: 7px; }
+    .prompt { background: #fff; border: 1px solid #e0e3e9; border-radius: 8px; padding: 14px; }
+    .copy { margin-top: 11px; color: #34469b; border: 1px solid #cdd4f5; background: #fff; border-radius: 7px; padding: 9px 13px; font: inherit; font-weight: 700; cursor: pointer; }
+    @media (max-width: 520px) { .trainer { padding: 15px; border-radius: 0; } h2 { font-size: 22px; } .time { font-size: 11px; } .option { padding: 12px; } .footer { align-items: stretch; } .actions { width: 100%; } .actions button { flex: 1; } }
+  </style>
 </head>
 <body>
-<section class="fd-task-demo" id="fdTaskDemo" aria-label="Сравнение двух поручений">
-<h3>Одно поручение — два результата</h3>
-<p class="intro">Переключите формулировку и посмотрите, с чем сотрудник придет к финансовому директору.</p>
-<div class="controls" role="group" aria-label="Вариант поручения">
-<button type="button" data-variant="bad" class="active" aria-pressed="true">Как обычно</button>
-<button type="button" data-variant="good" aria-pressed="false">Как лучше</button>
-</div>
-<div class="panel bad" id="fdTaskPanel" aria-live="polite">
-<div class="eyebrow" id="fdTaskLabel">Поручение без ожидаемого результата</div>
-<blockquote id="fdTaskQuote">«Посмотри, что у нас с дебиторкой, и подготовь информацию к пятнице».</blockquote>
-<div class="result"><strong id="fdTaskResultTitle">Что вы рискуете получить</strong><span id="fdTaskResult">Выгрузку задолженности: суммы, даты, перечень клиентов. Но не предложения о том, с какими должниками и что делать.</span></div>
-<div class="takeaway" id="fdTaskTakeaway">Сотрудник выполнил просьбу собрать информацию, но решение по-прежнему придется готовить вам.</div>
-</div>
-<div class="bottom"><span class="step" id="fdTaskStep">Вариант 1 из 2</span><button type="button" class="next" id="fdTaskNext">Улучшить поручение →</button></div>
-</section>
+<main class="trainer">
+  <div class="head">
+    <div><div class="eyebrow">Финальная тренировка</div><h2>Соберите промпт</h2></div>
+    <div class="time">◷ Т−10 минут</div>
+  </div>
+
+  <div class="scenario"><strong>Ситуация</strong>
+    В проекте бюджета расходы на логистику увеличиваются на 20%, хотя объем отгрузок вырастет всего на 5%.
+    Вы хотите выяснить причины расхождения до встречи с собственником.
+  </div>
+
+  <p class="task">Выберите три фрагмента хорошего запроса к ИИ</p>
+  <p class="hint">Три фрагмента — одна аналитическая задача. Нажимайте на карточки, чтобы выбрать или снять выбор.</p>
+  <div class="options" id="options" aria-label="Варианты промпта"></div>
+
+  <div class="footer">
+    <div class="count" id="counter" aria-live="polite">Выбрано: 0 из 3</div>
+    <div class="actions">
+      <button class="action reset" id="reset" type="button">Начать заново</button>
+      <button class="action check" id="check" type="button" disabled>Проверить промпт</button>
+    </div>
+  </div>
+
+  <section class="result" id="result" aria-live="polite">
+    <h3 id="resultTitle"></h3>
+    <p id="resultExplanation"></p>
+    <div class="prompt-title">Готовый промпт</div>
+    <div class="prompt" id="finalPrompt">Сравни плановые расходы на логистику с объемами отгрузок и рассчитай изменение стоимости доставки на единицу. Проанализируй возможное влияние тарифов, маршрутов, загрузки транспорта и структуры заказов. Покажи расчеты, отдели подтвержденные причины от гипотез и укажи, каких данных не хватает.</div>
+    <button class="copy" id="copy" type="button">Скопировать промпт</button>
+  </section>
+</main>
 <script>
-(function(){
-  var root=document.getElementById('fdTaskDemo'); if(!root)return;
-  var panel=root.querySelector('#fdTaskPanel');
-  var parts={label:root.querySelector('#fdTaskLabel'),quote:root.querySelector('#fdTaskQuote'),resultTitle:root.querySelector('#fdTaskResultTitle'),result:root.querySelector('#fdTaskResult'),takeaway:root.querySelector('#fdTaskTakeaway'),step:root.querySelector('#fdTaskStep'),next:root.querySelector('#fdTaskNext')};
-  var states={bad:{label:'Поручение без ожидаемого результата',quote:'«Посмотри, что у нас с дебиторкой, и подготовь информацию к пятнице».',resultTitle:'Что вы рискуете получить',result:'Выгрузку задолженности: суммы, даты, перечень клиентов. Но не предложения о том, с какими должниками и что делать.',takeaway:'Сотрудник выполнил просьбу собрать информацию, но решение по-прежнему придется готовить вам.',step:'Вариант 1 из 2',next:'Улучшить поручение →'},good:{label:'Поручение с ясной целью',quote:'«К пятнице выдели десять крупнейших проблемных должников, оцени причины просрочки и предложи меры по каждому. Мне нужно определить, где требуется мое вмешательство».',resultTitle:'Что вы получите',result:'Список десяти проблемных должников, причины просрочки и предложения по каждому. Видно, где требуется ваше вмешательство.',takeaway:'Сотрудник готовит не просто данные, а основу для вашего решения.',step:'Вариант 2 из 2',next:'Сравнить еще раз ↺'}};
-  function show(which){var s=states[which];panel.className='panel '+which;Object.keys(parts).forEach(function(k){parts[k].textContent=s[k]});root.querySelectorAll('[data-variant]').forEach(function(b){var a=b.getAttribute('data-variant')===which;b.classList.toggle('active',a);b.setAttribute('aria-pressed',String(a))});root.dataset.current=which;}
-  root.querySelectorAll('[data-variant]').forEach(function(b){b.addEventListener('click',function(){show(b.getAttribute('data-variant'))})});parts.next.addEventListener('click',function(){show(root.dataset.current==='good'?'bad':'good')});show('bad');
-})();
+  const fragments = [
+    { text: 'Сравни расходы на логистику с объемами отгрузок и рассчитай изменение стоимости доставки на единицу.', correct: true },
+    { text: 'Объясни, почему логистический отдел плохо контролирует расходы.', correct: false },
+    { text: 'Раздели возможные причины роста затрат: тарифы, маршруты, загрузка транспорта и структура заказов.', correct: true },
+    { text: 'Составь убедительное объяснение роста затрат для собственника.', correct: false },
+    { text: 'Покажи расчеты и укажи, каких данных не хватает для подтверждения причин.', correct: true },
+    { text: 'Предложи снизить логистический бюджет до уровня роста продаж.', correct: false }
+  ];
+  const root = document.getElementById('options');
+  const counter = document.getElementById('counter');
+  const check = document.getElementById('check');
+  const result = document.getElementById('result');
+  let selected = new Set();
+  let finished = false;
+
+  function render() {
+    root.replaceChildren();
+    fragments.forEach((fragment, i) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'option';
+      button.setAttribute('aria-pressed', String(selected.has(i)));
+      button.disabled = finished;
+      if (finished) button.classList.add(fragment.correct ? 'correct' : selected.has(i) ? 'wrong' : '');
+      const indicator = document.createElement('span');
+      indicator.className = 'box';
+      indicator.setAttribute('aria-hidden', 'true');
+      indicator.textContent = selected.has(i) ? '✓' : '';
+      const label = document.createElement('span');
+      label.textContent = fragment.text;
+      button.append(indicator, label);
+      if (finished) {
+        const mark = document.createElement('span');
+        mark.className = 'mark';
+        mark.textContent = fragment.correct ? '✓' : selected.has(i) ? '✕' : '';
+        button.append(mark);
+      }
+      button.addEventListener('click', () => {
+        if (finished) return;
+        if (selected.has(i)) selected.delete(i);
+        else if (selected.size < 3) selected.add(i);
+        render();
+      });
+      root.append(button);
+    });
+    counter.textContent = `Выбрано: ${selected.size} из 3`;
+    check.disabled = finished || selected.size !== 3;
+  }
+
+  check.addEventListener('click', () => {
+    if (selected.size !== 3 || finished) return;
+    finished = true;
+    const success = [...selected].every(index => fragments[index].correct);
+    document.getElementById('resultTitle').textContent = success
+      ? 'Отлично: запрос поможет проверить бюджет'
+      : 'Есть лишние или недостающие фрагменты';
+    document.getElementById('resultExplanation').textContent =
+      'Хороший запрос требует расчета, проверки факторов изменения затрат и указания недостающих данных. Просьбы найти виновных, придумать убедительное объяснение или заранее сократить расходы не подтверждают причины отклонения.';
+    result.classList.add('show');
+    render();
+  });
+
+  document.getElementById('reset').addEventListener('click', () => {
+    selected.clear();
+    finished = false;
+    result.classList.remove('show');
+    document.getElementById('copy').textContent = 'Скопировать промпт';
+    render();
+  });
+
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = document.getElementById('finalPrompt').textContent.trim();
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(text);
+      document.getElementById('copy').textContent = 'Скопировано ✓';
+    } catch (_) {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById('finalPrompt'));
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      document.getElementById('copy').textContent = 'Выделено — нажмите Ctrl+C';
+    }
+  });
+
+  render();
 </script>
 </body>
 </html>
